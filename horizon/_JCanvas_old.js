@@ -50,16 +50,12 @@
 	 * 定义一个可视图形的基本属性
 	 */
 	var DisplayClass = Class.extend({
-		init: function (option) {
-			if (option === undefined) {
-				option = {};
-			}
-			this.x = typeof option.x === 'number' ? option.x : 0;
-			this.y = typeof option.y === 'number' ? option.y : 0;
-			this.width = typeof option.width === 'number' ? option.width : 0;
-			this.height = typeof option.height === 'number' ? option.height : 0;
+		init: function () {
+			this.x = 0;
+			this.y = 0;
+			this.width = 0;
+			this.height = 0;
 			this.stage = null;
-			this.draw = typeof option.draw === 'function' ? option.draw : function () {};
 		}			
 	});
 
@@ -67,8 +63,8 @@
 	 * 交互对象
 	 */
 	var InteractiveClass = DisplayClass.extend({
-				init: function (option) {
-					this._super(option);
+				init: function () {
+					this._super();
 					this.eventListener = {};
 				},
 				addEventListener: function (type, func) {
@@ -109,8 +105,8 @@
 	 * Sprite 容器
 	 */
 	var ObjectContainerClass = InteractiveClass.extend({
-				init: function (ctx, option) {
-					this._super(option);
+				init: function (ctx) {
+					this._super();
 					this.ctx = ctx;
 					this.children = [];
 					this.maxWidth = 0;
@@ -215,7 +211,7 @@
 						if (mouseX > this.children[i].x && mouseX < this.children[i].x + this.children[i].width
 							&& mouseY > this.children[i].y && mouseY < this.children[i].y + this.children[i].height) {
 							type == 'mousemove' && _hoverChildren.push(this.children[i]);
-						
+						}
 						if (this.children[i].eventListener[type] == null
 							|| this.children[i].eventListener[type] == undefined) {
 							continue; // 没有事件监听器
@@ -223,7 +219,6 @@
 						// 有事件监听则遍历执行
 						for (var j=0, arr=this.children[i].eventListener[type]; j < arr.length; j++) {
 							arr[j](mouseX-this.children[i].x, mouseY-this.children[i].y);
-						}
 						}
 					};
 					if (type != 'mousemove') {
@@ -289,18 +284,14 @@
 	 * @param {htmlCanvasElement}
 	 */
 	var Stage = ObjectContainerClass.extend({
-		init: function (canvas, option) {
-			this._super(canvas.getContext('2d'), option);
+		init: function (canvas) {
+			this._super(canvas.getContext('2d'));
 			if (canvas === undefined) { throw new Error('htmlCanvasElement undefined') }
 			this.canvas = canvas;
 			this.isStart = false;
 			this.interval = 16;
 			this.timer = null;
 			this.stage = null;
-			this.CONFIG = {
-				interval: 16,
-				isClear: true
-			};
 			this.width = canvas.width;
 			this.height = canvas.height;
 			// 对canvasElement 监听
@@ -335,9 +326,10 @@
 							}(context, i), false);
 				}
 			};
-			batchAddMouseEventListener(this.canvas, ['mousemove', 'mouseup', 'mousedown', 'click', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave']);	
+			batchAddMouseEventListener(this.canvas, ['mousemove', 'mouseup', 'mousedown', 'click', 'mouseover', 'mouseout']);	
 			batchAddKeyEventListener(this.canvas, ['keyup', 'keydown', 'keypress']);
 		},
+		draw: function () {},
 		onRefresh: function () {},
 		addEventListener: function (type, func) { return this._super(type, func) },
 		removeEventListener: function (type, func) { return this._super(type, func) },
@@ -355,7 +347,7 @@
 		clearHoverChildren: function () { return this._super() },
 		render: function () {
 			// 重绘
-			!!this.CONFIG.isClear && this.clear();
+			this.clear();
 			// 画舞台
 			//console.log(this.children)
 			this.draw();
@@ -382,7 +374,7 @@
 					param.render();
 					param.onRefresh();
 				}
-			})(this), this.CONFIG.interval)
+			})(this), this.interval)
 		},
 		// 结束
 		stop: function () {
@@ -404,13 +396,14 @@
 	 * }
 	 */
 	var Sprite = ObjectContainerClass.extend({
-		init: function (ctx, option) {
-			this._super(ctx, option);
+		init: function (ctx) {
+			this._super(ctx);
 			this.isDragging = false;
 			this.dragPos = {};
 			this.dragFunc = null;
 			this.dropFunc = null;
 		},
+		draw: function () {},
 		addEventListener: function (type, func) { return this._super(type, func) },
 		removeEventListener: function (type, func) { return this._super(type, func) },
 		removeAllEventListener: function (type) { return this._super(type) },
@@ -521,193 +514,9 @@
 	Vector2.zero = new Vector2(0, 0);
 
 	/**
-	 * Color {Class}
-	 */
-	var Color = Class.extend({
-				init: function (r, g, b) {
-					this.r = r;
-					this.g =g;
-					this.b =b;
-				},
-				copy: function () {
-					return new Color(this.r, this.g, this.b);
-				},
-				add: function (c) {
-					return new Color(
-						Math.min(this.r+c.r, 1),
-						Math.min(this.g+c.g, 1),
-						Math.min(this.b+c.b, 1)
-						);
-				},
-				subtract: function (c) {
-					return new Color(
-						Math.max(this.r-c.r, 0),
-						Math.max(this.g-c.g, 0),
-						Math.max(this.b-c.b, 0)
-						);
-				},
-				multiply: function (n) {
-					return new Color(
-							Math.min(this.r*n, 1),
-							Math.min(this.g*n, 1),
-							Math.min(this.b*n, 1)
-							);		  
-				},
-				divide: function (n) {
-					return new Color(this.r/n, this.g/n, this.b/n);
-				},
-				/**
-				 * 混合调配
-				 */
-				modulate: function (c) {
-					return new Color(this.r*c.r, this.g*c.g, this.b*c.b);		  
-				},
-				saturate: function () {
-					this.r = Math.min(this.r, 1);
-					this.g = Math.min(this.g, 1);
-					this.b = Math.min(this.b, 1);
-				}
-			});
-	// static Color
-	Color.black = new Color(0, 0, 0);
-	Color.white = new Color(1, 1, 1);
-	Color.red = new Color(1, 0, 0);
-	Color.green = new Color(0, 1, 0);
-	Color.blue = new Color(0, 0, 1);
-	Color.yellow = new Color(1, 1, 0);
-	Color.cyan = new Color(0, 1, 1);
-	Color.purple = new Color(1, 0, 1);
-
-	/**
-	 * Particle Class
-	 * 粒子类
-	 * @param {Object}
-	 * {
-	 *		position:
-	 *		velocity:
-	 *		life:
-	 *		color:
-	 *		size:
-	 * }
-	 */
-	var Particle = Class.extend({
-		init: function (option) {
-			this.position = option.position;
-			this.velocity = option.velocity;
-			this.acceleration = Vector2.zero;
-			this.age = 0;
-			this.life = option.life;
-			this.color = option.color;
-			this.size = option.size;
-		}		
-	});
-
-	/**
-	 * ParticleSystem {Class}
-	 * 粒子系统，相当于粒子的一个collection
-	 * @require Particle
-	 */
-	var ParticleSystem = Class.extend({
-		init: function () {
-			this.$private = {
-				particles : []
-			}
-			
-			this.gravity = new Vector2(0, 100);
-			this.effectors = [];
-
-		},
-		// push 粒子到发射备用区
-		emit: function (particle) {
-			this.$private.particles.push(particle);
-		},
-		// 模拟运动(在当前时间微分下)
-		simulate: function (dt) {
-			this.aging(dt);
-			this.applyGravity();
-			this.applyEffectors();
-			this.kinematics(dt);
-		},
-		// 判断粒子的生存时间
-		aging: function (dt) {
-			for (var i=0; i < this.$private.particles.length; ) {
-				var p = this.$private.particles[i];
-				p.age += dt;
-				if (p.age > p.life) {
-					this.kill(i);
-				} else  {
-					i ++;
-				}
-			}
-		},
-		kill: function (index) {
-			if (index < this.$private.particles.length) {
-				this.$private.particles.splice(index, 1);
-			}	  
-		},
-		applyGravity: function () {
-			for (var i in this.$private.particles) {
-				this.$private.particles[i].acceleration = this.gravity;
-			}			  
-		},
-		applyEffectors: function () {
-			for (var j in this.effectors) {
-				var apply = this.effectors[j].apply;
-				for (var i in this.$private.particles) {
-					apply(this.$private.particles[i]);
-				}
-			}				
-		},
-		// 运动学变换，矢量叠加
-		kinematics: function (dt) {
-			for (var i in this.$private.particles) {
-				var p  = this.$private.particles[i];
-				p.position = p.position.add(p.velocity.multiply(dt));
-				p.velocity = p.velocity.add(p.acceleration.multiply(dt));
-			}
-		},
-		/**
-		 * 默认粒子的寿命由透明度表示
-		 */
-		render: function (ctx) {
-			for (var i in this.$private.particles) {
-				var p  = this.$private.particles[i],
-					alpha = 1- (p.age/p.life);
-				ctx.fillStyle = 'rgba('+Math.floor(p.color.r*255)+', '+Math.floor(p.color.g*255)+', '+Math.floor(p.color.b)+', '+alpha.toFixed(2)+')';
-				ctx.beginPath();
-				ctx.arc(p.position.x, p.position.y, p.size, 0, Math.PI*2, true);
-				ctx.closePath();
-				ctx.fill();
-			}
-		}
-	})
-
-	/**
-	 * ParticleBlock Class
-	 * @require [Particle, ParticleSystem]
-	 */
-	var ParticleBlock = Class.extend({
-		init: function (x1, y1, x2, y2)	{
-			this.apply = function (particle) {
-				if (particle.position.x - particle.size < x1 || particle.position.x + particle.size > x2) {
-					particle.velocity.x *= -1;
-				}
-				if (particle.position.y - particle.size < y1 || particle.position.y + particle.size > y2) {
-					particle.velocity.y *= -1;
-				}
-			}
-		}	
-	})
-
-	/**
 	 * @pulic Interface
 	 */
 	this.Stage = Stage;
 	this.Sprite = Sprite;
-	this.Vector2 = Vector2;
-	this.Color = Color;
-	this.Particle = Particle;
-	this.ParticleSystem = ParticleSystem;
-	this.ParticleBlock = ParticleBlock;
 
  })();
