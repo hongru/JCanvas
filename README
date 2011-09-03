@@ -1,0 +1,9 @@
+# a tool of canvas programing
+	include 
+		Stage
+		Sprite
+		Particle
+		ParticleSystem
+		Vector2
+		Vecrot3
+		Compo3d
