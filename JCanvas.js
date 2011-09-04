@@ -520,6 +520,7 @@
 			});
 	Vector2.zero = new Vector2(0, 0);
 
+
 	/**
 	 * Color {Class}
 	 */
@@ -592,13 +593,13 @@
 	 */
 	var Particle = Class.extend({
 		init: function (option) {
-			this.position = option.position;
-			this.velocity = option.velocity;
-			this.acceleration = Vector2.zero;
-			this.age = 0;
-			this.life = option.life;
-			this.color = option.color;
-			this.size = option.size;
+			this.position = option.position || Vector2.zero;
+			this.velocity = option.velocity || Vector2.zero;
+			this.acceleration = option.acceleration || Vector2.zero;
+			this.age = option.age || 0;
+			this.life = option.life || 1;
+			this.color = option.color || Color.black;
+			this.size = option.size || 5;
 		}		
 	});
 
@@ -700,6 +701,91 @@
 	})
 
 	/**
+	 * Vector3 
+	 */
+	var Vector3 = Class.extend({
+		init: function (x, y, z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		},
+		copy: function () {
+			return new Vector3(this.x, this.y, this.z);
+		},
+		length: function () {
+			return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+		},
+		sqrLength: function () {
+			return this.x*this.x + this.y*this.y + this.z*this.z;
+		},
+		normalize: function () {
+			var inv = 1/this.length();
+			return new Vector3(this.x*inv, this.y*inv, this.z*inv);
+		},
+		negate: function () {
+			return new Vector3(-this.x, -this.y, -this.z);
+		},
+		add: function (v) {
+			return new Vector3(this.x+v.x, this.y+v.y, this.z+v.z);
+		},
+		subtract: function (v) {
+			return new Vector3(this.x-v.x, this.y-v.y, this.z-v.z);
+		},
+		multiply: function (f) {
+			return new Vector3(this.x*f, this.y*f, this.z*f);
+		},
+		divide: function (f) {
+			return new Vector3(this.x/f, this.y/f, this.z/f);
+		},
+		dot: function (v) {
+			return new Vector3(this.x*v.x, this.y*v.y, this.z*v.z);
+		},
+		cross: function (v) {
+			return new Vector3(-this.z*v.y + this.y*v.z,
+						-this.x*v.z + this.z*v.z,
+						-this.y*v.x + this.x*v.y);
+		},
+		rotateY: function (angle) {
+			var tx = this.x,
+                tz = this.z;
+            this.x = (tx*Math.cos(angle)) + (tz*Math.sin(angle));
+            this.z = (tz*Math.cos(angle)) - (tx*Math.sin(angle));
+		}
+	});
+	Vector3.zero = new Vector3(0, 0, 0);
+
+	/** 
+	 * Camera
+	 */
+	var Camera = Class.extend({
+		init: function (option) {
+			if (typeof option == 'undefined') { option = {} }
+			this.x = option.x || 0;
+			this.y = option.y || 0;
+			this.focalLength = option.focalLength || 250;
+			this.zoom = option.zoom || 1;
+			this.izoom = option.izoom || .5;
+		}
+	})
+
+	/**
+	 * Particle3D
+	 */
+	var Particle3D = Class.extend({
+		init: function (option) {
+			this.camera = option.camera;
+			this.position = option.position || Vector3.zero;
+			this.velocity = option.velocity || Vector3.zero;
+			this.acceleration = option.acceleration || Vector3.zero;
+			this.age = option.age || 0;
+			this.life = option.life || 1;
+			this.color = option.color || Color.black;
+			this.size = option.size || 5;
+		}
+	})
+
+
+	/**
 	 * @pulic Interface
 	 */
 	this.Stage = Stage;
@@ -709,5 +795,8 @@
 	this.Particle = Particle;
 	this.ParticleSystem = ParticleSystem;
 	this.ParticleBlock = ParticleBlock;
+	this.Vector3 = Vector3;
+    this.Particle3D = Particle3D;
+	this.Camera = Camera;
 
  })();
