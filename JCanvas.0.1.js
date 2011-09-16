@@ -711,12 +711,97 @@
 	/**
 	 * @pulic Interface
 	 */
-	this.Stage = Stage;
-	this.Sprite = Sprite;
-	this.Vector2 = Vector2;
-	this.Color = Color;
-	this.Particle = Particle;
-	this.ParticleSystem = ParticleSystem;
-	this.ParticleBlock = ParticleBlock;
+    
+    var CVS = {};
+    // merge Class to CVS
+    CVS.$class = Class;
+    CVS.$stage = Stage;
+    CVS.$sprite = Sprite;
+    CVS.$vector2 = Vector2;
+    CVS.$color = Color;
+    CVS.$particle = Particle;
+    CVS.$particleSystem = ParticleSystem;
+    CVS.$particleBlock = ParticleBlock;
+    
+    // merge methods to CVS
+    extend(CVS, {
+		createSprite: function (ctx, options) {
+			return new Sprite(ctx, options);
+		},
+        createPoint3D: function (ctx, options) {
+            var _vpx = 0,
+				_vpy = 0,
+				_cx = 0,
+				_cy = 0,
+				_cz = 0,
+				opt = {
+                    x: 0,
+                    y: 0,
+					xpos: 0,
+					ypos: 0,
+					zpos: 0,
+					focalLength: 250,
+					width: 0,
+					height: 0,
+					draw: function () {},
+                    // 设定旋转中心
+                    setVanishPoint: function (vpx, vpy) {
+                        _vpx = vpx;
+                        _vpy = vpy;
+                    },
+                    // 设定坐标中心点
+                    setCenterPoint: function (x, y, z) {
+                        _cx = x;
+                        _cy = y;
+                        _cz = z;
+                    },
+                    // 绕x轴旋转
+                    rotateX: function (angleX) {
+                        var cosx = Math.cos(angleX),
+                            sinx = Math.sin(angleX),
+                            y1 = this.ypos * cosx - this.zpos * sinx,
+                            z1 = this.zpos * cosx + this.ypos * sinx;
+                        this.ypos = y1;
+                        this.zpos = z1;
+                    },
+                    // 绕y轴旋转
+                    rotateY: function (angleY) {
+                        var cosy = Math.cos(angleY),
+                            siny = Math.sin(angleY),
+                            x1 = this.xpos * cosy - this.zpos * siny,
+                            z1 = this.zpos * cosy + this.xpos * siny;
+                        this.xpos = x1;
+                        this.zpos = z1;
+                    },
+                    // 绕z轴旋转
+                    rotateZ: function (angleZ) {
+                        var cosz = Math.cos(angleZ),
+                            sinz = Math.sin(angleZ),
+                            x1 = this.xpos * cosz - this.ypos * sinz,
+                            y1 = this.ypos * cosz + this.xpos * sinz;
+                        this.xpos = x1;
+                        this.ypos = y1;
+                    },
+                    // 获取缩放scale
+                    getScale: function () {
+                        return (this.focalLength / (this.focalLength + this.zpos + _cz));		  
+                    },
+                    // 获取z轴扁平化的 x，y值
+                    getScreenXY: function () {
+                        var scale = this.getScale();
+                        return {
+                            x: _vpx + (_cx + this.xpos) * scale,
+                            y: _vpy + (_cy + this.ypos) * scale
+                        };
+                    }    
+				};
+                
+			extend(opt, options || {});
+
+			return new Sprite(ctx, opt);
+        }
+    });
+
+	this.CVS = CVS;
 
  })();
