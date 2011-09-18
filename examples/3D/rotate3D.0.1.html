@@ -12,77 +12,41 @@ p {text-align: center; font-size:12px;color:#454545;}
 <script>
 	var canvas = document.getElementById('canvas');
 	var stage = new CVS.$stage(canvas);
-	var createBall = function (radius) {
-		radius = (radius === undefined) ? 20 : radius;
-        var r = Math.floor(Math.random()*255),
-            g = Math.floor(Math.random()*255),
-            b = Math.floor(Math.random()*255);
-		return new CVS.$sprite(stage.ctx, {
-			x: 0,
-			y: 0,
-			width: radius*2,
-			draw: function () { 
-				this.ctx.beginPath();
-				this.ctx.arc(0, 0, this.width/2, 0, Math.PI*2, true);
-				this.ctx.closePath();
-				this.ctx.fillStyle = 'rgba('+r+','+g+','+b+','+ Math.min(1, this.width/(2*radius)) +')';
-				this.ctx.fill();
-			}
-		});
-	};
 
 	var initialize = function () {
 		var focalLength = 250,
-			ballR = 20,
 			ballN = 20,
 			balls = [],
 			vpx = 0,
 			vpy = 0,
 			angleY = 0,
-            angleX = 0;
+			angleX = 0;
 
+			vpx = canvas.width / 2;
+			vpy = canvas.height / 2;
 		for (var i=0; i<ballN; i++) {
-			var ball = createBall(ballR);
+			var ball = CVS.createPoint3D(stage.ctx, {
+				xpos: Math.random() * 200 - 100,
+				ypos: Math.random() * 200 - 100,
+				zpos: Math.random() * 200 - 100,
+				width: 15,
+				draw: function () {
+					this.ctx.beginPath();
+					this.ctx.arc(0, 0, this.width/2, 0, Math.PI*2, true);
+					this.ctx.closePath();
+					this.ctx.fill();
+				}
+			});
+			ball.setVanishPoint(vpx, vpy);
 			stage.addChild(ball);
-			ball.xpos = Math.random() * 200 - 100;
-			ball.ypos = Math.random() * 200 - 100;
-			ball.zpos = Math.random() * 200 - 100;
 			balls.push(ball);
 		}
-		vpx = canvas.width/2;
-		vpy = canvas.height/2;
 
 		stage.addEventListener('mousemove', function (x, y) {
 			angleY = (x - vpx) * .001;
             angleX = (y - vpy) * .001;
 		});
 		
-		function rotateY(ball, angleY) {
-			var cosy = Math.cos(angleY),
-				siny = Math.sin(angleY),
-				x1 = ball.xpos * cosy - ball.zpos * siny,
-				z1 = ball.zpos * cosy + ball.xpos * siny;
-			ball.xpos = x1;
-			ball.zpos = z1;
-		}
-        
-        function rotateX(ball, angleX) {
-            var cosx = Math.cos(angleX),
-                sinx = Math.sin(angleX),
-                y1 = ball.ypos * cosx - ball.zpos * sinx,
-                z1 = ball.zpos * cosx + ball.ypos * sinx;
-            ball.ypos = y1;
-            ball.zpos = z1;
-        }
-        
-        function render (ball) {
-            if (ball.zpos > -focalLength) {
-                var scale = focalLength / (focalLength + ball.zpos);
-                ball.x = vpx + ball.xpos * scale;
-                ball.y = vpy + ball.ypos * scale;
-                ball.width = ballR*2*scale;
-            }
-        }
         
         function sortZ () {
             balls.sort(function (a, b) { return b.zpos-a.zpos })
@@ -91,9 +55,11 @@ p {text-align: center; font-size:12px;color:#454545;}
 
 		stage.onRefresh = function () { 
 			for (var i=0,ball; ball=balls[i]; i++) { 
-                rotateX(ball, angleX);
-                rotateY(ball, angleY);
-                render(ball);
+			   ball.rotateX(angleX);
+			   var scale = ball.getScale(),
+			   pos = ball.getScreenXY();
+			   ball.x = pos.x;
+			   ball.y = pos.y;
             }
             sortZ();
 		}
