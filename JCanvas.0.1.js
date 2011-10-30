@@ -68,7 +68,9 @@
 			this.height = 0;
 			this.stage = null;
 			this.draw = function () {};
-			extend(this, option || {});
+			
+			typeof option == 'function' ? option.call(this) : extend(this, option || {});
+			
 		}			
 	});
 
@@ -796,10 +798,143 @@
                     }    
 				};
                 
-			extend(opt, options || {});
+			typeof options == 'function' ? options.call(opt) : extend(opt, options || {});
 
-			return new Sprite(ctx, opt);
-        }
+			//return new Sprite(ctx, opt);
+			var point3d = new Sprite(ctx, opt);
+			  Object.defineProperties(point3d, {
+				'screenX': {
+				  get: function () {
+					return this.getScreenXY().x
+				  }
+				},
+				'screenY': {
+				  get: function () {
+					return this.getScreenXY().y
+				  }
+				}
+			  });
+			  
+			return point3d;
+        },
+		createTriangle: function (ctx, a, b, c, color, isStroke) {
+			isStroke = isStroke == undefined ? true : isStroke;
+		  var pointA = a,
+			  pointB = b,
+			  pointC = c,
+			  triangle = CVS.createSprite(ctx, function () {
+				this.color = color;
+				this.light = null;
+				this.draw = function (g) {
+				  if (isBackface()) {
+					return;
+				  }
+				  g = g || this.ctx;
+				  //Depth example doesn't set a light, use flat color.
+				  g.beginPath();
+				  g.moveTo(pointA.screenX, pointA.screenY);
+				  g.lineTo(pointB.screenX, pointB.screenY);
+				  g.lineTo(pointC.screenX, pointC.screenY);
+				  g.lineTo(pointA.screenX, pointA.screenY);
+				  g.closePath();
+
+				  var color = (this.light ? getAdjustedColor.call(this) : this.color);
+
+				  if (typeof color == 'number') {
+					color = 'rgb('+(color >> 16)+', '+ (color >> 8 & 0xff) +', '+ (color & 0xff) +')'
+				  }
+
+				  g.fillStyle = color;
+				  g.fill();
+				  if (!isStroke) {
+					g.strokeStyle = color;
+					g.stroke();
+				  }
+				};
+			  });
+
+		  Object.defineProperties(triangle, {
+			'depth': {
+			  get: function () {
+				var zpos = Math.min(pointA.z, pointB.z, pointC.z);
+				return zpos;
+			  }
+			}
+		  });
+
+		  function getAdjustedColor () {
+			var red = this.color >> 16,
+				green = this.color >> 8 & 0xff,
+				blue = this.color & 0xff,
+				lightFactor = getLightFactor.call(this);
+			
+			red *= lightFactor;
+			green *= lightFactor;
+			blue *= lightFactor;
+
+			return red << 16 | green << 8 | blue;
+		  }
+
+		  function getLightFactor () {
+			var ab = {
+				  x: pointA.xpos - pointB.xpos,
+				  y: pointA.ypos - pointB.ypos,
+				  z: pointA.zpos - pointB.zpos
+				},
+				bc = {
+				  x: pointB.xpos - pointC.xpos,
+				  y: pointB.ypos - pointC.ypos,
+				  z: pointB.zpos - pointC.zpos
+				},
+				norm = {
+				  x: (ab.y * bc.z) - (ab.z * bc.y),
+				  y: -((ab.x * bc.z) - (ab.z * bc.x)),
+				  z: (ab.x * bc.y) - (ab.y * bc.x)
+				},
+				dotProd = norm.x * this.light.x +
+						  norm.y * this.light.y +
+						  norm.z * this.light.z,
+				normMag = Math.sqrt(norm.x * norm.x +
+									norm.y * norm.y +
+									norm.z * norm.z),
+				lightMag = Math.sqrt(this.light.x * this.light.x +
+									 this.light.y * this.light.y +
+									 this.light.z * this.light.z);
+			
+			return (Math.acos(dotProd / (normMag * lightMag)) / Math.PI) * this.light.brightness;
+		  }
+		  
+		  function isBackface () {
+			//see http://www.jurjans.lv/flash/shape.html
+			var cax = pointC.screenX - pointA.screenX,
+				cay = pointC.screenY - pointA.screenY,
+				bcx = pointB.screenX - pointC.screenX,
+				bcy = pointB.screenY - pointC.screenY;
+			return cax * bcy > cay * bcx;
+		  }
+		  
+		  return triangle;
+		},
+		createLight: function (x, y, z, brightness) {
+			x = (x === undefined) ? -100 : x;
+			y = (y === undefined) ? -100 : y;
+			z = (z === undefined) ? -100 : z;
+			brightness = (brightness === undefined) ? 1 : brightness;
+		  
+			return Object.defineProperties({
+				x: x,
+				y: y,
+				z: z
+			}, 
+			{
+				'brightness': {
+					get: function () { return brightness; },
+					set: function (b) {
+						brightness = Math.min(Math.max(b, 0), 1);
+					}
+				}
+			});
+		}
     });
 
 	this.CVS = CVS;
