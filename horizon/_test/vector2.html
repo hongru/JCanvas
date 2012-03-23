@@ -3,9 +3,14 @@
 <style>
 	canvas {display:block; margin: 60px auto; border: 2px solid #ccc}
 </style>
-<script src="../JCanvas.js"></script>
+<script src="../../JCanvas.0.1.js"></script>
 <canvas id="canvas" width="600" height="400"></canvas>
 <script>
+        var Vector2 = CVS.$vector2,
+        ParticleBlock = CVS.$particleBlock,
+        Stage = CVS.$stage,
+        Particle = CVS.$particle,
+        Color = CVS.$color;
 	var position = new Vector2(0, 200), // 初始位置
 		velocity = new Vector2(50, -50), // 初始速度
 		acceleration = new Vector2(0, 10), // 加速度

@@ -3,10 +3,12 @@
 <style>
 	canvas {display:block; margin: 60px auto; border: 2px solid #ccc}
 </style>
-<script src="../JCanvas.js"></script>
+<script src="../../JCanvas.0.1.js"></script>
 <canvas id="canvas" width="600" height="400"></canvas>
 <script>
 	var canvas = document.getElementById('canvas');
+    var Stage = CVS.$stage,
+        Sprite = CVS.$sprite;
 	var stage = new Stage(canvas);
 
 	var A = new Sprite(stage.ctx, {

@@ -314,15 +314,43 @@
 			};
 			this.width = canvas.width;
 			this.height = canvas.height;
+            
+            // private methods
+            var win = window, html = document.documentElement;
+            var context = this;
+            
+            function getWindowScroll() {
+                return { x: win.pageXOffset || html.scrollLeft, y: win.pageYOffset || html.scrollTop };
+            }
+            function getOffset (el) {
+                el = el || context.canvas;
+                var width = el.offsetWidth,
+                    height = el.offsetHeight,
+                    top = el.offsetTop,
+                    left = el.offsetLeft;
+                while (el = el.offsetParent) {
+                    top = top + el.offsetTop;
+                    left = left + el.offsetLeft;
+                }
+                return {
+                    top: top,
+                    left: left,
+                    width: width,
+                    height: height
+                };
+            }
+            
 			// 对canvasElement 监听
 			//
-			var context = this;
 			var batchAddMouseEventListener = function (el, evArr) {
 				for (var i=0; i<evArr.length; i++) { //console.log(evArr[i])
 					el.addEventListener(evArr[i], function (param, i) {
 						return function (e) { 
-							var x = e.clientX - param.canvas.offsetLeft,
-								y = e.clientY - param.canvas.offsetTop;
+                            var offset = getOffset(),
+                                winScroll = getWindowScroll();
+
+							var x = e.clientX - offset.left + winScroll.x,
+								y = e.clientY - offset.top + winScroll.y;
 							if (!!param.eventListener[evArr[i]]) {
 								for (var j=0; j<param.eventListener[evArr[i]].length; j++) {
 									param.eventListener[evArr[i]][j](x, y);
