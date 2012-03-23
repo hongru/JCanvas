@@ -218,23 +218,48 @@
 				dispatchMouseEvent: function (type, x, y) {
 					var mouseX = x, mouseY = y;
 					var _hoverChildren = [];
-					for (var i=0; i<this.children.length; i++) {
-						if (!!this.children[i].dispatchMouseEvent) {
-							this.children[i].dispatchMouseEvent(type, mouseX-this.children[i].x, mouseY-this.children[i].y);
+                    // check isMouseover
+                    function isMouseover (child) {
+                        var ret = false;
+                        // checkType  rect|circle|poly
+                        if (!child.checkType) {
+                            child.checkType = 'rect';
+                        }
+                        switch (child.checkType) {
+                            case 'rect':
+                                ret = (mouseX > child.x 
+                                        && mouseX < child.x + child.width
+                                        && mouseY > child.y
+                                        && mouseY < child.y + child.height);
+                                break;
+                            case 'circle':
+                                if (typeof child.radius != 'number') { throw 'no radius or radius is not a number' }
+                                ret = (Math.sqrt(Math.pow((mouseX-child.x) ,2) + Math.pow((mouseY-child.y) ,2)) < child.radius);
+                                break;
+                            case 'poly':
+                                // to be continue...
+                                break;
+                        }
+                        return ret;
+                    }
+                    
+					for (var i=0; i<this.children.length; i++) { 
+                        var child = this.children[i];
+						if (!!child.dispatchMouseEvent) {
+							child.dispatchMouseEvent(type, mouseX-child.x, mouseY-child.y);
 						}
 						//鼠标悬浮于子对象上面
-						if (mouseX > this.children[i].x && mouseX < this.children[i].x + this.children[i].width
-							&& mouseY > this.children[i].y && mouseY < this.children[i].y + this.children[i].height) {
-							type == 'mousemove' && _hoverChildren.push(this.children[i]);
+						if (isMouseover(child)) {
+							type == 'mousemove' && _hoverChildren.push(child);
 						
-						if (this.children[i].eventListener[type] == null
-							|| this.children[i].eventListener[type] == undefined) {
-							continue; // 没有事件监听器
-						}
-						// 有事件监听则遍历执行
-						for (var j=0, arr=this.children[i].eventListener[type]; j < arr.length; j++) {
-							arr[j](mouseX-this.children[i].x, mouseY-this.children[i].y);
-						}
+                            if (child.eventListener[type] == null
+                                || child.eventListener[type] == undefined) {
+                                continue; // 没有事件监听器
+                            }
+                            // 有事件监听则遍历执行
+                            for (var j=0, arr=child.eventListener[type]; j < arr.length; j++) {
+                                arr[j](mouseX-child.x, mouseY-child.y);
+                            }
 						}
 					};
 					if (type != 'mousemove') {
@@ -965,6 +990,11 @@
 		}
     });
 
-	this.CVS = CVS;
+    // add to Laro, so check if Laro is available
+    if (this.Laro && Laro.extend) {
+        Laro.extend(CVS);
+    } else {
+        this.CVS = CVS;
+    }
 
  })();
