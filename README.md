@@ -17,3 +17,7 @@ A tool for canvas programing, offer some apis for 3D
 - [cube3](http://hongru.github.com/proj/jcanvas/cube3.html)
 - [cube4](http://hongru.github.com/proj/jcanvas/cube4.html)
 - [cube5](http://hongru.github.com/proj/jcanvas/cube5.html)
+
+#### version update log ####
++ 0.1 增加3d point的简易api
++ 0.2 touch事件支持，sprite和stage的draw方法接入 render传参，可结合Laro或其他有二次封装的render使用
