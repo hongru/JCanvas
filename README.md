@@ -23,3 +23,4 @@ A tool for canvas programing, offer some apis for 3D
 + 0.1 增加3d point的简易api
 + 0.2 touch事件支持，sprite和stage的draw方法接入 render传参，可结合Laro或其他有二次封装的render使用
 + 0.3 check point in triangle; see http://2000clicks.com/mathhelp/GeometryPointAndTriangle2.aspx
++ 0.4 修复dispatchEvent 事件派发 时候 的透传问题。
