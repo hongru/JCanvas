@@ -4,6 +4,7 @@ A tool for canvas programing, offer some apis for 3D
 ## Examples ##
 - [normal](http://hongru.github.com/proj/jcanvas/JCanvas.html)
 - [circleCheck](http://hongru.github.com/proj/jcanvas/circleCheck.html)
+- [dispatchEvent](http://hongru.github.com/proj/jcanvas/mouseEventCheck.html)
 - [vector2](http://hongru.github.com/proj/jcanvas/vector2.html)
 - [particle](http://hongru.github.com/proj/jcanvas/particle.html)
 - [particleEffector](http://hongru.github.com/proj/jcanvas/particleEffector.html)
