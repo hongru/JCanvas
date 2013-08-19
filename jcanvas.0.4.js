@@ -362,7 +362,7 @@
 
             // private methods
             var win = window,
-                html = document.documentElement;
+                html = document.documentElement || {scrollLeft:0, scrollTop: 0};
             var context = this;
 
             function getWindowScroll() {
